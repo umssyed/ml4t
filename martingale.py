@@ -145,10 +145,13 @@ def figure2_3_exp1(win_prob, episodes):
     print("------")
     set_winnings = set(final_winnings)
     weight = {}
+    winning_times = {}
     for num in set_winnings:
+        winning_times[num] = final_winnings.count(num)
         weight[num] = final_winnings.count(num) / episodes
     ev = expected_value(weight)
     print(f"Probability weightage: {weight}")
+    print(f"Number of times won: {winning_times[80]}")
     print(f"Q1 - Probability of winning $80: {weight[80]*100}%")
     print(f"Q2 - The expected value of winnings is: ${ev}")
     print("------")
@@ -212,7 +215,9 @@ def figure4_5_exp2(win_prob, episodes):
     print("------")
     set_winnings = set(final_winnings)
     weight = {}
+    winning_times = {}
     for num in set_winnings:
+        winning_times[num] = final_winnings.count(num)
         weight[num] = final_winnings.count(num)/episodes
     ev = expected_value(weight)
     print(f"Probability weightage: {weight}")
