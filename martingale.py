@@ -80,17 +80,20 @@ def test_code():
     #For Experiment 2, Figure 4 and Figure 5
     figure4_5_exp2(win_prob, episodes=1000)
 
+
+
 def figure1_exp1(win_prob, episodes):
     #Generate Figure 1:
     #Run simple simulator 10 episodes and track winnings, starting
     #from 0 each time. Plot all 10 episodes on one chart.
     #X-Axis ranges ->  0 - 300
     #Y-Axis ranges -> -256 - 100
-
+    final_winnings = []
     experiment = np.zeros((episodes, 1001))
 
     for row in range(0, episodes):
-        run_simulator_roulette_per_episode(experiment, row, win_prob)
+        run_simulator_roulette_per_episode(experiment, row, win_prob, final_winnings)
+
 
     x_axis = [n for n in range(0, 1001)]
     y_axis_0 = experiment[0, :]
@@ -125,14 +128,30 @@ def figure1_exp1(win_prob, episodes):
     plt.savefig('images/figure1.png')
     plt.close(fig)
 
+def expected_value(dictionary):
+    #Return the expected value from the dictionary of weights
+    #dictionary = { winnings in dollars : probability }
+    return sum([k*v for k, v in dictionary.items()])
+
 def figure2_3_exp1(win_prob, episodes):
     #Generate Figure 2 and 3:
     #Run simple simulator 1000 episodes.
-
+    final_winnings = []
     experiment = np.zeros((episodes, 1001))
     for row in range(0, episodes):
-        run_simulator_roulette_per_episode(experiment, row, win_prob)
+        run_simulator_roulette_per_episode(experiment, row, win_prob, final_winnings)
 
+    # QUESTIONS 1 and 2
+    print("------")
+    set_winnings = set(final_winnings)
+    weight = {}
+    for num in set_winnings:
+        weight[num] = final_winnings.count(num) / episodes
+    ev = expected_value(weight)
+    print(f"Probability weightage: {weight}")
+    print(f"Q1 - Probability of winning $80: {weight[80]*100}%")
+    print(f"Q2 - The expected value of winnings is: ${ev}")
+    print("------")
     x_axis = [n for n in range(0, 1001)]
     mean = np.mean(experiment, axis=0) #axis = 0 for mean of a particular spin across all episodes
     median = np.median(experiment, axis=0) #axis = 0 for median of a particular spin across all episodes
@@ -179,15 +198,27 @@ def figure2_3_exp1(win_prob, episodes):
 def figure4_5_exp2(win_prob, episodes):
     #Generate Figure 4 and 5:
     #Run "realistic" simulator 1000 episodes.
-
+    final_winnings = []
     experiment = np.zeros((episodes, 1001))
     for row in range(0, episodes):
-        run_realistic_roulette_per_episode(experiment, row, win_prob)
+        run_realistic_roulette_per_episode(experiment, row, win_prob, final_winnings)
 
     x_axis = [n for n in range(0, 1001)]
     mean = np.mean(experiment, axis=0) #axis = 0 for mean of a particular spin across all episodes
     median = np.median(experiment, axis=0) #axis = 0 for median of a particular spin across all episodes
     std = np.std(experiment, axis=0, ddof=0) # ddof=0 for "population std dev"
+
+    # QUESTION 3 and 4
+    print("------")
+    set_winnings = set(final_winnings)
+    weight = {}
+    for num in set_winnings:
+        weight[num] = final_winnings.count(num)/episodes
+    ev = expected_value(weight)
+    print(f"Probability weightage: {weight}")
+    print(f"Q1 - Probability of winning $80: {weight[80]*100}%")
+    print(f"Q2 - The expected value of winnings is: ${ev}")
+    print("------")
 
     #FIGURE 4
     #Plot the MEAN value of winnings
@@ -227,7 +258,7 @@ def figure4_5_exp2(win_prob, episodes):
 
 
 #3.2 - Formula fuction for "Explore the strategy and create some charts"
-def run_simulator_roulette_per_episode(array, episode_num, win_prob):
+def run_simulator_roulette_per_episode(array, episode_num, win_prob, final_winnings):
     bet_winnings = 0
     spin_number = 1
     max_spins = 1001
@@ -254,8 +285,11 @@ def run_simulator_roulette_per_episode(array, episode_num, win_prob):
         #array[episode_num, spin_number] = bet_winnings
         spin_number = spin_number + 1
 
+    final_winnings.append(bet_winnings)
+
+
 #3.3 - Formula function for "A more realistic gambling simulator"
-def run_realistic_roulette_per_episode(array, episode_num, win_prob):
+def run_realistic_roulette_per_episode(array, episode_num, win_prob, final_winnings):
     bet_winnings = 256 #start bet winnings with bank roll of $256
     max_bet_winnings = 336 #max bet winnings is $bet_winnings + $80 = $336
     spin_number = 1
@@ -288,6 +322,10 @@ def run_realistic_roulette_per_episode(array, episode_num, win_prob):
         #After each spin, enter the bet_winnings of the spin in its appropriate episode
         #Go to the next bet number
         spin_number = spin_number + 1
+    k = bet_winnings - 256
+    final_winnings.append(k)
+
+
 
 
 if __name__ == "__main__":  		  	   		  	  		  		  		    	 		 		   		 		  
