@@ -28,7 +28,7 @@ GT ID: ########################################### (replace with your GT ID)
   		  	   		  	  		  		  		    	 		 		   		 		  
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
+import matplotlib.image as img
   		  	   		  	  		  		  		    	 		 		   		 		  
   		  	   		  	  		  		  		    	 		 		   		 		  
 def author():  		  	   		  	  		  		  		    	 		 		   		 		  
@@ -116,13 +116,14 @@ def figure1_exp1(win_prob, episodes):
     fig1.plot(x_axis, y_axis_8, label="Episode 9 Winnings")
     fig1.plot(x_axis, y_axis_9, label="Episode 10 Winnings")
 
-    plt.title("Figure 1: Episode Winnings For Each Spin")
+    plt.title("Figure 1: Episode Winnings For Each Spin (Simple Simulator)")
     plt.xlim(0, 300)
     plt.ylim(-256, 100)
     plt.legend()
     plt.xlabel("Spin Number")
     plt.ylabel("Winnings")
-    plt.show()
+    plt.savefig('images/figure1.png')
+    plt.close(fig)
 
 def figure2_3_exp1(win_prob, episodes):
     #Generate Figure 2 and 3:
@@ -146,13 +147,14 @@ def figure2_3_exp1(win_prob, episodes):
     fig2.plot(x_axis, mean+std, label="Mean + standard deviation")
     fig2.plot(x_axis, mean-std, label="Mean - standard deviation")
 
-    plt.title("Figure 2: Plot of mean and standard deviation")
+    plt.title("Figure 2: Mean and standard deviation (Simple Simulator)")
     plt.xlim(0, 300)
     plt.ylim(-256, 100)
     plt.legend()
     plt.xlabel("Spin Number")
     plt.ylabel("Winnings")
-    plt.show()
+    plt.savefig('images/figure2.png')
+    plt.close(fig)
 
 
     #FIGURE 3
@@ -164,13 +166,15 @@ def figure2_3_exp1(win_prob, episodes):
     fig3.plot(x_axis, median + std, label="Median + standard deviation")
     fig3.plot(x_axis, median - std, label="Median - standard deviation")
 
-    plt.title("Figure 3: Plot of median and standard deviation")
+    plt.title("Figure 3: Median and standard deviation (Simple Simulator)")
     plt.xlim(0, 300)
     plt.ylim(-256, 100)
     plt.legend()
     plt.xlabel("Spin Number")
     plt.ylabel("Winnings")
-    plt.show()
+    plt.savefig('images/figure3.png')
+    plt.close(fig)
+
 
 def figure4_5_exp2(win_prob, episodes):
     #Generate Figure 4 and 5:
@@ -194,13 +198,14 @@ def figure4_5_exp2(win_prob, episodes):
     fig4.plot(x_axis, mean+std, label="Mean + standard deviation")
     fig4.plot(x_axis, mean-std, label="Mean - standard deviation")
 
-    plt.title("Figure 4: Plot of mean and standard deviation")
+    plt.title("Figure 4: Mean and standard deviation (Realistic Simulator)")
     plt.xlim(0, 300)
     plt.ylim(-256, 100)
     plt.legend()
     plt.xlabel("Spin Number")
     plt.ylabel("Winnings")
-    plt.show()
+    plt.savefig('images/figure4.png')
+    plt.close(fig)
 
     #FIGURE 5
     #Plot the MEDIAN value of winnings
@@ -211,13 +216,15 @@ def figure4_5_exp2(win_prob, episodes):
     fig5.plot(x_axis, median + std, label="Median + standard deviation")
     fig5.plot(x_axis, median - std, label="Median - standard deviation")
 
-    plt.title("Figure 5: Plot of median and standard deviation")
+    plt.title("Figure 5: Median and standard deviation (Realistic Simulator)")
     plt.xlim(0, 300)
     plt.ylim(-256, 100)
     plt.legend()
     plt.xlabel("Spin Number")
     plt.ylabel("Winnings")
-    plt.show()
+    plt.savefig('images/figure5.png')
+    plt.close(fig)
+
 
 #3.2 - Formula fuction for "Explore the strategy and create some charts"
 def run_simulator_roulette_per_episode(array, episode_num, win_prob):
