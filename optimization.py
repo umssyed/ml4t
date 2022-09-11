@@ -33,12 +33,53 @@ import numpy as np
   		  	   		  	  		  		  		    	 		 		   		 		  
 import matplotlib.pyplot as plt  		  	   		  	  		  		  		    	 		 		   		 		  
 import pandas as pd  		  	   		  	  		  		  		    	 		 		   		 		  
-from util import get_data, plot_data  		  	   		  	  		  		  		    	 		 		   		 		  
+from util import get_data, plot_data
+import scipy.optimize as spo
   		  	   		  	  		  		  		    	 		 		   		 		  
   		  	   		  	  		  		  		    	 		 		   		 		  
 # This is the function that will be tested by the autograder  		  	   		  	  		  		  		    	 		 		   		 		  
 # The student must update this code to properly implement the functionality  		  	   		  	  		  		  		    	 		 		   		 		  
-def optimize_portfolio(  		  	   		  	  		  		  		    	 		 		   		 		  
+
+def compute_statistics(allocs, prices):
+    start_val = 10000
+    rfr = 0.00
+    sf = 252.00
+    normalized_prices = prices / prices.ix[0,:]
+    alloced = normalized_prices * allocs
+    pos_vals = alloced * start_val
+    portfolio_val = pos_vals.sum(axis=1)
+    daily_returns = portfolio_val.copy()
+    daily_returns[1:] = (portfolio_val[1:] / portfolio_val[:-1].values) - 1
+    daily_returns[0] = 0
+
+    cr = (portfolio_val[-1] / portfolio_val[0]) - 1
+    adr = daily_returns[1:].mean()
+    sddr = daily_returns[1:].std()
+
+    top = (daily_returns[1:] - rfr).mean()
+    bottom = (daily_returns[1:] - rfr).std()
+    sr = (sf ** (1/2)) * (top/bottom)
+    return cr, adr, sddr, sr
+
+
+def sr_function(allocs, prices):
+    #print(f"\nRunning with allocation: \n{allocs}")
+    cr, adr, sddr, sr = compute_statistics(allocs, prices)
+    y = -1.00*sr
+    #print(f"cr: {cr}, adr: {adr}, sddr: {sddr}, sr:{sr}")
+    #print(f"y: {y}")
+    return y
+
+def constraint(alloc):
+    return np.sum(alloc)-1
+
+def check_alloc_sum(alloc):
+    sum = 0
+    for x in alloc:
+        sum += x
+    #print(f"Sum of new allocations: {sum}")
+
+def optimize_portfolio(
     sd=dt.datetime(2008, 1, 1),  		  	   		  	  		  		  		    	 		 		   		 		  
     ed=dt.datetime(2009, 1, 1),  		  	   		  	  		  		  		    	 		 		   		 		  
     syms=["GOOG", "AAPL", "GLD", "XOM"],  		  	   		  	  		  		  		    	 		 		   		 		  
@@ -78,8 +119,6 @@ def optimize_portfolio(
         [0.2, 0.2, 0.3, 0.1, 0.2]
     )  # add code here to find the allocations
 
-    start_value = 1000 #Assumption of starting value of $10,000
-
     cr, adr, sddr, sr = [  		  	   		  	  		  		  		    	 		 		   		 		  
         0.25,  		  	   		  	  		  		  		    	 		 		   		 		  
         0.001,  		  	   		  	  		  		  		    	 		 		   		 		  
@@ -89,38 +128,26 @@ def optimize_portfolio(
   		  	   		  	  		  		  		    	 		 		   		 		  
     # Get daily portfolio value  		  	   		  	  		  		  		    	 		 		   		 		  
     port_val = prices_SPY  # add code here to compute daily portfolio values
-    #Calculate Daily Portfolio Value
-    #Step 1 - Normalize the daily prices
-    normalized_prices = prices/prices.ix[0,:]
-    #print(f"Normalized prices:")
-    #print(normalized_prices[0:5])
+    total_symbols = len(syms)
+    allocs = total_symbols*[1/total_symbols]
 
-    #Step 2 - Find normalized allocated values
-    alloced = normalized_prices * allocs
-    #print(f"Normalized Allocated prices:")
-    #print(alloced[0:5])
+    #sr_function(allocs, prices)
+    b = (0, 1)
+    bounds = list(b for allocation in range(0, total_symbols))
+    con = {
+        'type': 'eq',
+        'fun': constraint
+    }
+    results = spo.minimize(sr_function, allocs, args=(prices,), bounds=bounds, method='SLSQP',constraints=(con))
+    computed_allocs = results.x
 
-    #Step 3 - Find the position value based on the starting value
-    pos_vals = alloced * start_value
-    #print(f"Position Values with starting amount $1,000:")
-    #print(pos_vals[0:5])
 
-    #Step 4 - Find total value of portfolio each day by summing across each day
-    port_val = pos_vals.sum(axis=1)
-    #print(f"Daily total porfolio value:")
-    #print(port_val)
+    #compute_statistics(allocs, prices)
+    print(f"\n\nNew Allocs: {computed_allocs}")
+    check_alloc_sum(computed_allocs)
+    cr, adr, sddr, sr = compute_statistics(computed_allocs, prices)
+    allocs = computed_allocs
 
-    #Step 5 - Find Daily Returns using formula (price[t]/price[t-1]) - 1
-    daily_returns = port_val.copy()
-    print(f"Daily returns look liks:")
-    print(daily_returns[1:])
-    print(daily_returns)
-  		  	   		  	  		  		  		    	 		 		   		 		  
-    print("\n========================================\n")
-    #Cummulative Return = (cum_return_final / cum_return_start) - 1
-    cr = (port_val[-1] / port_val[0]) - 1
-    print(f"The cummulative return is: {cr}")
-    print("\n========================================\n")
     # Compare daily portfolio value with SPY using a normalized plot
     if gen_plot:  		  	   		  	  		  		  		    	 		 		   		 		  
         # add code to plot here  		  	   		  	  		  		  		    	 		 		   		 		  
@@ -136,8 +163,8 @@ def optimize_portfolio(
         pass  		  	   		  	  		  		  		    	 		 		   		 		  
   		  	   		  	  		  		  		    	 		 		   		 		  
     return allocs, cr, adr, sddr, sr  		  	   		  	  		  		  		    	 		 		   		 		  
-  		  	   		  	  		  		  		    	 		 		   		 		  
-  		  	   		  	  		  		  		    	 		 		   		 		  
+
+
 def test_code():  		  	   		  	  		  		  		    	 		 		   		 		  
     """  		  	   		  	  		  		  		    	 		 		   		 		  
     This function WILL NOT be called by the auto grader.  		  	   		  	  		  		  		    	 		 		   		 		  
@@ -145,7 +172,7 @@ def test_code():
   		  	   		  	  		  		  		    	 		 		   		 		  
     start_date = dt.datetime(2009, 1, 1)  		  	   		  	  		  		  		    	 		 		   		 		  
     end_date = dt.datetime(2010, 1, 1)  		  	   		  	  		  		  		    	 		 		   		 		  
-    symbols = ["GOOG", "AAPL", "GLD", "XOM", "IBM"]  		  	   		  	  		  		  		    	 		 		   		 		  
+    symbols = ["GOOG", "AAPL", "AFL", "XOM", "IBM"]
   		  	   		  	  		  		  		    	 		 		   		 		  
     # Assess the portfolio  		  	   		  	  		  		  		    	 		 		   		 		  
     allocations, cr, adr, sddr, sr = optimize_portfolio(  		  	   		  	  		  		  		    	 		 		   		 		  
