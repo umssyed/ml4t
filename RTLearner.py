@@ -23,8 +23,6 @@ class RTLearner:
 
 
     def build_tree(self, data_x, data_y):
-        #print(f"\ndata_x:\n{data_y}")
-        #print(f"data_y:\n{data_y}")
         if data_x.shape[0] == 1:
             return np.array([-1, data_y[0], -1, -1])
 
@@ -63,6 +61,7 @@ class RTLearner:
             sorted_data_x = data_x[data_x[:, best_feature].argsort()]
             sorted_data_y = data_y[data_x[:, best_feature].argsort()]
 
+
             # Step 4. Find the split value using the median on the factor column
             # Step 4. (i) find split value by using the median of the best_feature sorted column in data_x
             splitVal = np.median(data_x[:, best_feature])
@@ -83,6 +82,16 @@ class RTLearner:
                 rt_data_x = np.array(sorted_data_x[index:, :])
                 rt_data_y = np.array(sorted_data_y[index:])
 
+                # Edge Case - If the split causes all values to the left with nothing on right,
+                # Append leaf node with mean values of left tree's Y data
+                if rt_data_x.shape[0] == 0 and rt_data_y.shape[0] == 0:
+                    return np.array([-1, np.mean(lt_data_y), -1, -1])
+
+                # Edge Case - If the split causes all values to the right with nothing on left,
+                # Append leaf node with mean values of right tree's Y data
+                if lt_data_x.shape[0] == 0 and lt_data_y.shape[0] == 0:
+                    return np.array([-1, np.mean(rt_data_y), -1, -1])
+
             else:
                 # Step 4. (ii) find row index where value is less than or equal to splitVal
                 for value in sorted_data_x[:, best_feature]:
@@ -99,6 +108,8 @@ class RTLearner:
                 # Right tree data x and data y
                 rt_data_x = np.array(sorted_data_x[index:, :])
                 rt_data_y = np.array(sorted_data_y[index:])
+
+
 
             # Step 7. Build the left and right tree
             # Build left tree
