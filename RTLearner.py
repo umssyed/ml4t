@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class DTLearner:
+class RTLearner:
 
     def __init__(self, leaf_size=1, verbose=False):
         self.tree = None
@@ -10,7 +10,7 @@ class DTLearner:
 
     def printData(self):
         if self.verbose == True:
-            print(f"\n================DTLEARNER=================")
+            print(f"\n================RTLEARNER=================")
             print(f"Final tree:")
             print(self.tree)
             print(f"\n{self.author()}\n")
@@ -23,6 +23,8 @@ class DTLearner:
 
 
     def build_tree(self, data_x, data_y):
+        #print(f"\ndata_x:\n{data_y}")
+        #print(f"data_y:\n{data_y}")
         if data_x.shape[0] == 1:
             return np.array([-1, data_y[0], -1, -1])
 
@@ -35,6 +37,7 @@ class DTLearner:
         else:
             # Step 1. Find the correlation of data_x to data_y
             numCols = data_x.shape[1]
+            #print(f"numCols is: {numCols}, {data_x.shape[0]}")
             correlation = np.empty(shape=[0, numCols])
             for i in range(0, numCols):
                 if np.std(data_x[:, i]) > 0:
@@ -51,6 +54,8 @@ class DTLearner:
                 best_feature = 0
             else:
                 best_feature = correlation.argmax()
+
+            best_feature = np.random.randint(numCols)
             factor = best_feature + 1 #Index the factors from 1 -> N
 
             # Step 3. Sort the data_x, data_y with reference to the factor column
