@@ -68,18 +68,8 @@ class BagLearner:
                 predictions_stack = pred_from_one_learner
             else:
                 predictions_stack = np.column_stack((predictions_stack, pred_from_one_learner))
-        print("")
-        #print(predictions_stack)
-        #print(predictions_stack.shape)
-
-        #if self.bags == 1:
-        #    predictions = predictions_stack
-        #else:
-        #    predictions = np.mean(predictions_stack, axis=1)
 
         predictions = np.mean(predictions_stack, axis=1)
-        print(predictions)
-        print(predictions.shape)
         self.predictions = predictions
         #self.printData()
         return predictions
