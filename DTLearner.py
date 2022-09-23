@@ -118,7 +118,13 @@ class DTLearner:
         # Identify root_node to be the tree's first (0) node
         predicted_value = -1
         node_index = 0  # starting node_index
-        root_node = self.tree[node_index]
+
+        #If the generated tree is only 1D, then return
+        #the splitValue directly
+        if self.tree.ndim == 1:
+            return self.tree[1]
+        else:
+            root_node = self.tree[node_index]
 
         # Set the current node to the root node and the factor
         # to the first node's factor value
@@ -147,8 +153,6 @@ class DTLearner:
             predicted_value = current_node[1]
         else:
             # Set the predicted value to a random negative value.
-            # DELETE PRINT STATEMENT LATER
-            print(f"We ran into an error! Completed the entire search in the tree and not at a leaf node!")
             predicted_value = -1000000
         return predicted_value
 

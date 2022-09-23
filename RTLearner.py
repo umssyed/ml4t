@@ -163,8 +163,6 @@ class RTLearner:
             predicted_value = current_node[1]
         else:
             # Set the predicted value to a random negative value.
-            # DELETE PRINT STATEMENT LATER
-            print(f"We ran into an error! Completed the entire search in the tree and not at a leaf node!")
             predicted_value = -1000000
         return predicted_value
 
