@@ -6,7 +6,6 @@ class InsaneLearner:
         self.verbose, self.result = verbose, None
         self.lrlBagLearners = [bl.BagLearner(learner=lrl.LinRegLearner, kwargs={}, bags=20, verbose=self.verbose) for i in range(0, 20)]
     def add_evidence(self, data_x, data_y):
-        #add evidence
         for bag in self.lrlBagLearners:
             bag.add_evidence(data_x, data_y)
     def query(self, points):

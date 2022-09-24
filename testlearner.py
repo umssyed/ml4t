@@ -34,6 +34,177 @@ import DTLearner as dt
 import RTLearner as rt
 import BagLearner as bl
 import InsaneLearner as it
+import matplotlib.pyplot as plt
+import time
+
+def experiment_1(train_x, train_y, test_x, test_y, max_leaf_size):
+    rmse_inSample = []
+    rmse_outSample = []
+
+    #Evaluate for leaf size 1 to max_leaf size
+    for leaf_size in range(1, max_leaf_size+1):
+        learner = dt.DTLearner(leaf_size=leaf_size, verbose=False)
+        learner.add_evidence(data_x=train_x, data_y=train_y)
+
+        #In-sample
+        predY_inSample = learner.query(train_x)
+        rmse_inSample.append(math.sqrt(((train_y - predY_inSample) ** 2).sum() / train_y.shape[0]))
+
+        #Out-sample
+        predY_outSample = learner.query(test_x)
+        rmse_outSample.append(math.sqrt(((test_y - predY_outSample) ** 2).sum() / test_y.shape[0]))
+
+    x_axis = range(1, max_leaf_size+1)
+    y_inSample = rmse_inSample
+    y_outSample = rmse_outSample
+
+    plt.plot(x_axis, y_inSample, label="In-Sample predictions")
+    plt.plot(x_axis, y_outSample, label="Out-Sample predictions")
+    plt.title("Figure 1: DTLearner with 100 Leaf Size")
+    plt.legend()
+    plt.xlabel("Leaf Size")
+    plt.ylabel("RMSE")
+    #plt.show()
+
+
+def experiment_2(train_x, train_y, test_x, test_y, max_leaf_size, numBags):
+    rmse_inSample = []
+    rmse_outSample = []
+
+    for leaf_size in range(1, max_leaf_size+1):
+        learner = bl.BagLearner(learner=dt.DTLearner, kwargs={"leaf_size":leaf_size, "verbose":False}, bags=numBags, verbose=False)
+        learner.add_evidence(data_x=train_x, data_y=train_y)
+
+        #In-Sample
+        predY_inSample = learner.query(train_x)
+        rmse_inSample.append(math.sqrt(((train_y - predY_inSample) ** 2).sum() / train_y.shape[0]))
+
+        #Out-Sample
+        predY_outSample = learner.query(test_x)
+        rmse_outSample.append(math.sqrt(((test_y - predY_outSample) ** 2).sum() / test_y.shape[0]))
+
+
+    x_axis = range(1, max_leaf_size + 1)
+    y_inSample = rmse_inSample
+    y_outSample = rmse_outSample
+
+
+    plt.plot(x_axis, y_inSample, label="In-Sample predictions")
+    plt.plot(x_axis, y_outSample, label="Out-Sample predictions")
+    plt.title("Figure 2: BagLearner with 20 bags of DTLearners and with 100 Leaf Size")
+    plt.legend()
+    plt.xlabel("Leaf Size")
+    plt.ylabel("RMSE")
+    #plt.show()
+
+def experiment_3_rsquared(train_x, train_y, test_x, test_y, max_leaf_size):
+    dt_outsample = []
+    rt_outsample = []
+
+    for leaf_size in range(1, max_leaf_size+1):
+        #Create DT Learner
+        dt_learner = dt.DTLearner(leaf_size=leaf_size, verbose=False)
+        dt_learner.add_evidence(data_x=train_x, data_y=train_y)
+
+        #Get out-sample
+        dt_predY_outSample = dt_learner.query(train_x)
+        dt_corr_matrix = np.corrcoef(x=dt_predY_outSample, y=train_y)
+        dt_corr = dt_corr_matrix[0, 1]
+        dt_outsample.append(dt_corr)
+
+        #Create RT Learner
+        rt_learner = rt.RTLearner(leaf_size=leaf_size, verbose=False)
+        rt_learner.add_evidence(data_x=train_x, data_y=train_y)
+
+        #Get out-sample
+        rt_predY_outSample = rt_learner.query(train_x)
+        rt_corr_matrix = np.corrcoef(x=rt_predY_outSample, y=train_y)
+        rt_corr = rt_corr_matrix[0, 1]
+        rt_outsample.append(rt_corr)
+
+    x_axis = range(1, max_leaf_size+1)
+    y_axis_dt = dt_outsample
+    y_axis_rt = rt_outsample
+
+    plt.plot(x_axis, y_axis_dt, label="Decision Tree r-squared")
+    plt.plot(x_axis, y_axis_rt, label="Random Tree r-squared")
+    plt.title("Figure 3: Coefficient of Determination between DT and RT learners")
+    plt.legend()
+    plt.xlabel("Leaf Size")
+    plt.ylabel("Coefficient of Determination (r-squared)")
+    plt.show()
+
+
+def mae(actual, predicted):
+    mae = np.mean(np.abs(actual-predicted))
+    return mae
+
+def experiment_3_mae(train_x, train_y, test_x, test_y, max_leaf_size):
+    dt_mae = []
+    rt_mae = []
+
+    for leaf_size in range(1, max_leaf_size+1):
+        #Create DT Learner
+        dt_learner = dt.DTLearner(leaf_size=leaf_size, verbose=False)
+        dt_learner.add_evidence(data_x=train_x, data_y=train_y)
+
+        #Get out-sample
+        dt_mae_outsample = dt_learner.query(test_x)
+        mean_abs_error = mae(dt_mae_outsample, test_y)
+        dt_mae.append(mean_abs_error)
+
+        #Create RT Learner
+        rt_learner = rt.RTLearner(leaf_size=leaf_size, verbose=False)
+        rt_learner.add_evidence(data_x=train_x, data_y=train_y)
+
+        #Get out-sample
+        rt_mae_outsample = rt_learner.query(test_x)
+        mean_abs_error = mae(rt_mae_outsample, test_y)
+        rt_mae.append(mean_abs_error)
+
+    x_axis = range(1, max_leaf_size + 1)
+    y_axis_dt = dt_mae
+    y_axis_rt = rt_mae
+
+    plt.plot(x_axis, y_axis_dt, label="Decision Tree MAE")
+    plt.plot(x_axis, y_axis_rt, label="Random Tree MAE")
+    plt.title("Figure 4: MAE between DT and RT learners")
+    plt.legend()
+    plt.xlabel("Leaf Size")
+    plt.ylabel("Mean Absolute Error")
+    plt.show()
+
+def experiment_3_build_time(train_x, train_y, max_leaf_size):
+    dt_build_time = []
+    rt_build_time = []
+
+    for leaf_size in range(1, max_leaf_size+1):
+        #Create DT Learner and time it
+        dt_learner = dt.DTLearner(leaf_size=leaf_size, verbose=False)
+        dt_start = time.time()
+        dt_learner.add_evidence(data_x=train_x, data_y=train_y)
+        dt_stop = time.time()
+        dt_build_time.append(dt_stop - dt_start)
+
+        # Create RT Learner and time it
+        rt_learner = rt.RTLearner(leaf_size=leaf_size, verbose=False)
+        rt_start = time.time()
+        rt_learner.add_evidence(data_x=train_x, data_y=train_y)
+        rt_stop = time.time()
+        rt_build_time.append(rt_stop - rt_start)
+
+    x_axis = range(1, max_leaf_size + 1)
+    y_axis_dt = dt_build_time
+    y_axis_rt = rt_build_time
+
+    plt.plot(x_axis, y_axis_dt, label="Decision Tree Build Time")
+    plt.plot(x_axis, y_axis_rt, label="Random Tree Build time")
+    plt.title("Figure 5: Build time for DT and RT learners")
+    plt.legend()
+    plt.xlabel("Leaf Size")
+    plt.ylabel("Build Time (s)")
+    plt.show()
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -64,49 +235,12 @@ if __name__ == "__main__":
     test_x = data[train_rows:, 0:-1]
     test_y = data[train_rows:, -1]
 
-    print("Test")
-    '''
-    train_x = np.array(
-        [[2, 3, 2, 4, 1],
-         [3, 4, 2, 4, 2],
-         [1, 3, 1, 4, 3],
-         [3, 3, 1, 2, 1],
-         [1, 3, 2, 3, 3],
-         [4, 3, 2, 3, 3],
-         [3, 4, 4, 4, 1],
-         [3, 1, 2, 2, 1]])
+    #experiment_1(train_x, train_y, test_x, test_y, 100)
+    #experiment_2(train_x, train_y, test_x, test_y, 100, 20)
+    #experiment_3_rsquared(train_x, train_y, test_x, test_y, 200)
+    #experiment_3_mae(train_x, train_y, test_x, test_y, 100)
+    experiment_3_build_time(train_x, train_y, 50)
 
-    train_y = np.array([2, 1, 4, 5, 8, 5, 6, 2])
-    print(train_x)
-    print(train_y)
-    '''
-
-    #learner = dt.DTLearner(leaf_size=1, verbose=False)
-    #learner.add_evidence(data_x=train_x, data_y=train_y)
-    #pred_dt = learner.query(test_x)
-    #print(f"prediction:\n")
-    #print(pred_dt)
-
-    print("------------------------")
-    #learner = rt.RTLearner(leaf_size=1, verbose=False)
-    #learner.add_evidence(data_x=train_x, data_y=train_y)
-    #pred_rt = learner.query(train_x)
-    #print(f"prediction:\n")
-    #print(pred_rt)
-
-    print('\n------------------------')
-    #print('Bag Learner')
-    #learner = bl.BagLearner(learner=dt.DTLearner, kwargs={"leaf_size":50, "verbose":False}, bags=100, verbose=True)
-    #learner.add_evidence(data_x=train_x, data_y=train_y)
-    #learner.query(train_x)
-
-    learner = it.InsaneLearner(verbose=False)
-    learner.add_evidence(data_x=train_x, data_y=train_y)
-    r = learner.query(train_x)
-    print(r)
-
-
-    '''
     # create a learner and train it  		  	   		  	  		  		  		    	 		 		   		 		  
     learner = lrl.LinRegLearner(verbose=True)  # create a LinRegLearner  		  	   		  	  		  		  		    	 		 		   		 		  
     learner.add_evidence(train_x, train_y)  # train it  		  	   		  	  		  		  		    	 		 		   		 		  
@@ -122,11 +256,11 @@ if __name__ == "__main__":
     print(f"corr: {c[0,1]}")  		  	   		  	  		  		  		    	 		 		   		 		  
   		  	   		  	  		  		  		    	 		 		   		 		  
     # evaluate out of sample  		  	   		  	  		  		  		    	 		 		   		 		  
-    pred_y = learner.query(test_x)  # get the predictions  		  	   		  	  		  		  		    	 		 		   		 		  
+    pred_y = learner.query(test_x)  # get the predictions
+    print(pred_y, test_y)
     rmse = math.sqrt(((test_y - pred_y) ** 2).sum() / test_y.shape[0])  		  	   		  	  		  		  		    	 		 		   		 		  
     print()  		  	   		  	  		  		  		    	 		 		   		 		  
     print("Out of sample results")  		  	   		  	  		  		  		    	 		 		   		 		  
     print(f"RMSE: {rmse}")  		  	   		  	  		  		  		    	 		 		   		 		  
-    c = np.corrcoef(pred_y, y=test_y)  		  	   		  	  		  		  		    	 		 		   		 		  
+    c = np.corrcoef(pred_y, y=test_y)
     print(f"corr: {c[0,1]}")  
-    '''
