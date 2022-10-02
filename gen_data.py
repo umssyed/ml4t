@@ -81,22 +81,24 @@ def best_4_dt(seed=1489683273):
 
     rows = np.random.randint(low=10, high=1001, size=1)[0]
     cols = np.random.randint(low=2, high=11, size=1)[0]
+    print(f"rows: {rows}, cols: {cols}")
 
-    rows = 2
-    cols = 3
-    x_dataset = np.random.random((rows, cols))
+    #rows = 2
+    #cols = 4
+    x_dataset = np.random.random((rows, cols))*500
+    #x_dataset = np.random.random_integers(1, 400, (rows, cols))
     y_dataset = np.zeros((rows,))
 
     for i in range(0, cols):
-        y_dataset += x_dataset[:, i]**(i)
+        multiplier = (i + 1) * 10
+        if i == 0 or i == 1 or i == 2:
+            y_dataset += multiplier * (x_dataset[:, i] ** (i + 2))
+        else:
+            y_dataset += multiplier * np.sin(x_dataset[:, i])
 
-    sum = np.sum(x_dataset, axis=1)
-    y_dataset = sum**2
 
-
-    print(f"x = \n{x_dataset}")
-    print(f"y = \n{y_dataset}")
-
+    #print(f"x = \n{x_dataset}")
+    #print(f"y = \n{y_dataset}")
     x = x_dataset
     y = y_dataset
     return x, y  		  	   		  	  		  		  		    	 		 		   		 		  

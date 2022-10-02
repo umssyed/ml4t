@@ -77,7 +77,9 @@ def compare_os_rmse(learner1, learner2, x, y):
 def test_code():  		  	   		  	  		  		  		    	 		 		   		 		  
     """  		  	   		  	  		  		  		    	 		 		   		 		  
     Performs a test of your code and prints the results  		  	   		  	  		  		  		    	 		 		   		 		  
-    """  		  	   		  	  		  		  		    	 		 		   		 		  
+    """
+    min_seed = 0
+    max_seed = 800
     # create two learners and get data  		  	   		  	  		  		  		    	 		 		   		 		  
     lrlearner = lrl.LinRegLearner(verbose=False)  		  	   		  	  		  		  		    	 		 		   		 		  
     dtlearner = dt.DTLearner(verbose=False, leaf_size=1)
@@ -85,9 +87,9 @@ def test_code():
     # Uzair - Add seed generator
     total_run_lr = 0
     passed_lr = 0
-    seed_min_lr = 0
-    seed_max_lr = 2**(32)
-    seed_max_lr = 1
+    seed_min_lr = min_seed
+    seed_max_lr_insane = 2**(32)
+    seed_max_lr = max_seed
     for seed in range(seed_min_lr, seed_max_lr):
         print(f"\nSeed: {seed}")
         x, y = best_4_lin_reg(seed)
@@ -108,9 +110,7 @@ def test_code():
             total_run_lr += 1
             print("LR >= 0.9 DT:  fail")
         print()
-    print(f"\n======== best_4_lin RESULTS ========\n")
-    print(f"Total run: {total_run_lr}, # passed = {passed_lr}, Success rate = {(passed_lr/total_run_lr)*100} %\n")
-    print(f"=============== END ===============\n\n\n")
+
 
     # get data that is best for a random tree
     lrlearner = lrl.LinRegLearner(verbose=False)  		  	   		  	  		  		  		    	 		 		   		 		  
@@ -119,9 +119,9 @@ def test_code():
     # Uzair - Add seed generator
     total_run_dt = 0
     passed_dt = 0
-    seed_min_dt = 0
-    seed_max_dt = 2**(32)
-    seed_max_dt = 100
+    seed_min_dt = min_seed
+    seed_max_dt_insane = 2**(32)
+    seed_max_dt = max_seed
     for seed in range(seed_min_dt, seed_max_dt):
         print(f"\nSeed: {seed}")
         x, y = best_4_dt(seed)
@@ -142,10 +142,17 @@ def test_code():
             total_run_dt += 1
             print("DT >= 0.9 LR:  fail")
         print
-    print(f"\n======== best_4_dt RESULTS ========\n")
-    print(
-        f"Total run: {total_run_dt}, # passed = {passed_dt}, Success rate = {(passed_dt / total_run_dt) * 100} %\n")
+
+    print(f"\n================================== RESULTS ==================================\n")
+    print(f"\n======== best_4_lin RESULTS ========\n")
+    print(f"Total run: {total_run_lr}, # passed = {passed_lr}, Success rate = {(passed_lr / total_run_lr) * 100} %\n")
     print(f"=============== END ===============\n\n\n")
+
+    print(f"\n======== best_4_dt RESULTS ========\n")
+    print(f"Total run: {total_run_dt}, # passed = {passed_dt}, Success rate = {(passed_dt / total_run_dt) * 100} %\n")
+    print(f"=============== END ===============\n\n\n")
+
+
   		  	   		  	  		  		  		    	 		 		   		 		  
   		  	   		  	  		  		  		    	 		 		   		 		  
 if __name__ == "__main__":  		  	   		  	  		  		  		    	 		 		   		 		  
