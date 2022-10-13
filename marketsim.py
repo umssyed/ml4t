@@ -36,7 +36,7 @@ from util import get_data, plot_data
   		  	   		  	  		  		  		    	 		 		   		 		  
   		  	   		  	  		  		  		    	 		 		   		 		  
 def compute_portvals(  		  	   		  	  		  		  		    	 		 		   		 		  
-    orders_file="./orders/orders.csv",  		  	   		  	  		  		  		    	 		 		   		 		  
+    orders_file="./orders/orders-01.csv",
     start_val=1000000,  		  	   		  	  		  		  		    	 		 		   		 		  
     commission=9.95,  		  	   		  	  		  		  		    	 		 		   		 		  
     impact=0.005,  		  	   		  	  		  		  		    	 		 		   		 		  
@@ -60,35 +60,30 @@ def compute_portvals(
     # code should work correctly with either input  		  	   		  	  		  		  		    	 		 		   		 		  
     # TODO: Your code here
 
+    # Set to 3 decimal places
+    pd.options.display.float_format = '{:,.3f}'.format
+
     # Find Start Date and End date by scanning the orders_file
     df_orders_file = pd.read_csv(orders_file)
     df_len = len(df_orders_file)
     start_date = df_orders_file['Date'][0]
     end_date = df_orders_file['Date'][df_len-1]
     dates = pd.date_range(start_date, end_date)
-    print(df_orders_file)
 
-    # Create main df with Date as index column
-    df = pd.read_csv(orders_file, index_col="Date", parse_dates=True, na_values=['nan'])
+    #df = pd.read_csv(orders_file, index_col="Date", parse_dates=True, na_values=['nan'])
 
     #---------------------PRICE DATAFRAME----------------------#
     # Set df_dates
     df_dates = pd.DataFrame(index=dates)
 
     # Loop through the orders file to find symbols
-    sym = []
-    for i in range(0, df_len):
-        temp_sym = df_orders_file['Symbol'][i]
-        if temp_sym not in sym:
-            sym.append(temp_sym)
-    print(sym)
-    print("")
+    sym = list(set(df_orders_file['Symbol'].values))
+
     # Create symbols dataframes with prices using util function get_data()
     df_sym = get_data(sym, dates)
 
     # Assign "Cash" to the df_sym
     df_price = df_sym.assign(Cash=start_val)
-    print(df_price)
 
     # ---------------------TRADES DATAFRAME----------------------#
     # Copy df_price to df_trades and drop SPY column
@@ -98,9 +93,9 @@ def compute_portvals(
     # Initialize zero values for all symbols and Cash
     df_trades[sym] = 0
     df_trades['Cash'] = 0
-    #print(df_trades)
-    print(" ")
 
+    # Convert dataframe to float type object
+    df_trades = df_trades.astype('float')
     # Go through orders file and fill in orders. Buy is positive, Sell is negative
     for i in range(0, df_len):
         trade_date = df_orders_file['Date'][i]
@@ -109,16 +104,18 @@ def compute_portvals(
         trade_shares = df_orders_file['Shares'][i]
         actual_price = df_price.loc[trade_date][trade_stock]
 
+        # Transaction Costs = Commission + Impact
+        transaction_costs = commission + (impact * trade_shares * actual_price)
+        df_trades.loc[trade_date]['Cash'] -= transaction_costs
+
+        # For each order action, update shares and cash
         if trade_order == 'BUY':
             df_trades.loc[trade_date][trade_stock] += trade_shares
             df_trades.loc[trade_date]['Cash'] += -actual_price*trade_shares
+
         else:
             df_trades.loc[trade_date][trade_stock] += -trade_shares
             df_trades.loc[trade_date]['Cash'] += actual_price * trade_shares
-
-    print("DF TRADES")
-    print(df_trades)
-    print(" ")
 
     # ---------------------HOLDINGS DATAFRAME----------------------#
     # Copy df_trades to df_holdings
@@ -126,7 +123,7 @@ def compute_portvals(
     st = pd.date_range(start_date, start_date)
     et = pd.date_range(end_date, end_date)
 
-    # Start with initial cash and update
+    # Start with initial cash and update initial cash only
     for index, values in df_holdings.iterrows():
         if index == st:
             values['Cash'] += start_val
@@ -137,11 +134,6 @@ def compute_portvals(
     for col in df_holdings:
         df_holdings[col] = df_holdings[col].cumsum()
 
-    print(" ")
-    print("DF HOLDINGS")
-    print(df_holdings)
-    print(" ")
-
     # ---------------------VALUES DATAFRAME----------------------#
     # Copy df_holdings to df_values
     df_values = df_holdings
@@ -151,11 +143,6 @@ def compute_portvals(
         df_values[symbol] = df_values[symbol] * df_price[symbol]
 
     pv = df_values.sum(axis=1)
-    print(" ")
-    print("DF VALUEs")
-    print(df_values)
-    print(" ")
-    print(pv)
 
     # ---------------------PORTVALS DATAFRAME----------------------#
     # Create portvals dataframe which is the sum of the values + cash
