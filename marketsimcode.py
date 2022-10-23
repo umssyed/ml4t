@@ -26,7 +26,6 @@ def compute_portvals(
     # NOTE: orders_file may be a string, or it may be a file object. Your
     # code should work correctly with either input
     # TODO: Your code here
-    print('\n--------COMPUTE VALS--------\n')
     end_date = orders_file.index[-1]
     # Using the dataframe of trades, construct a full order dataframe
     trades_of = orders_file
@@ -105,8 +104,6 @@ def compute_portvals(
             df_trades.loc[trade_date][trade_stock] += -trade_shares
             df_trades.loc[trade_date]['Cash'] += actual_price * trade_shares
 
-
-
     # ---------------------HOLDINGS DATAFRAME----------------------#
     # Copy df_trades to df_holdings
     df_holdings = df_trades
@@ -140,76 +137,8 @@ def compute_portvals(
     portvals = pd.DataFrame(index=dates)
     portvals = portvals.assign(Values=pv).dropna(axis=0)
 
-    #print(f"\nThe portvals is:")
-    print(portvals)
     return portvals
-
-
-def test_code():
-    """
-    Helper function to test code
-    """
-    # this is a helper function you can use to test your code
-    # note that during autograding his function will not be called.
-    # Define input parameters
-
-    #of = "../marketsim/orders/orders-01.csv"
-
-
-    of = pd.read_csv('../marketsim/orders/orders-01.csv', index_col=0, parse_dates=[0])
-    print(of)
-    sv = 1000000
-
-    # Process orders
-    portvals = compute_portvals(orders_file=of, start_val=sv)
-    if isinstance(portvals, pd.DataFrame):
-        portvals = portvals[
-            portvals.columns[0]]  # just get the first column
-    else:
-        "warning, code did not return a DataFrame"
-
-        # Get portfolio stats
-    # Here we just fake the data. you should use your code from previous assignments.
-    start_date = dt.datetime(2008, 1, 1)
-    end_date = dt.datetime(2008, 6, 1)
-    cum_ret, avg_daily_ret, std_daily_ret, sharpe_ratio = [
-        0.2,
-        0.01,
-        0.02,
-        1.5,
-    ]
-    cum_ret_SPY, avg_daily_ret_SPY, std_daily_ret_SPY, sharpe_ratio_SPY = [
-        0.2,
-        0.01,
-        0.02,
-        1.5,
-    ]
-
-    # Compare portfolio against $SPX
-    print(f"Date Range: {start_date} to {end_date}")
-    print()
-    print(f"Sharpe Ratio of Fund: {sharpe_ratio}")
-    print(f"Sharpe Ratio of SPY : {sharpe_ratio_SPY}")
-    print()
-    print(f"Cumulative Return of Fund: {cum_ret}")
-    print(f"Cumulative Return of SPY : {cum_ret_SPY}")
-    print()
-    print(f"Standard Deviation of Fund: {std_daily_ret}")
-    print(f"Standard Deviation of SPY : {std_daily_ret_SPY}")
-    print()
-    print(f"Average Daily Return of Fund: {avg_daily_ret}")
-    print(f"Average Daily Return of SPY : {avg_daily_ret_SPY}")
-    print()
-    print(f"Final Portfolio Value: {portvals[-1]}")
-    print("----")
-    print()
-    print("DataFrame")
-
-
 
 
 def author():
     return 'msyed46'
-
-if __name__ == "__main__":
-    test_code()

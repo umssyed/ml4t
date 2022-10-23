@@ -5,7 +5,6 @@ from util import get_data, plot_data
 import matplotlib.pyplot as plt
 
 def testPolicy(symbol, sd, ed, sv):
-    print(f"TEST POLICY")
     # Generate data using util function and using the specified date range
     df = get_data([symbol], dates=pd.date_range(sd, ed))
 
@@ -77,7 +76,8 @@ def run_benchmark(symbol, sd, ed, sv):
 
 
 def gen_results(benchmark, theoretical):
-    pd.set_option('display.precision', 6)
+    print('\nGENERATE STATISTICS\n')
+    pd.set_option('display.float_format', '{:.6f}'.format)
 
     # Calculate Cumulative Return
     cr_benchmark = (benchmark[-1] / benchmark[0]) - 1
@@ -95,14 +95,33 @@ def gen_results(benchmark, theoretical):
     mean_benchmark = dr_benchmark.mean()
     mean_theoretical = dr_theoretical.mean()
 
+    '''
+    print(f"Benchmark:")
+    print(f"CR: {cr_benchmark}")
+    print(f"SD: {sd_benchmark}")
+    print(f"MEAN: {mean_benchmark}")
+    print(f"\nTheoretical:")
+    print(f"CR: {cr_theoretical}")
+    print(f"SD: {sd_theoretical}")
+    print(f"MEAN: {mean_theoretical}\n")
+    '''
+    data = {
+        'Statistics' : ['Cumulative Return', 'Standard Deviation of Daily Returns', 'Mean of Daily Returns'],
+        'Benchmark' : [cr_benchmark, sd_benchmark, mean_benchmark],
+        'Theoretical' : [cr_theoretical, sd_theoretical, mean_theoretical]
+    }
+
+    table = pd.DataFrame(data)
+    table = table.set_index('Statistics')
+    print(table)
+    print('')
 
 def gen_plots(benchmark, theoretical):
-
     # Normalize both datasets
     benchmark['Values'] = benchmark['Values'] / benchmark['Values'][0]
     theoretical['Values'] = theoretical['Values'] / theoretical['Values'][0]
 
-    plt.figure(figsize=(15, 9))
+    plt.figure(figsize=(20, 9))
     plt.plot(benchmark, label='Benchmark - Buy and Hold', color='Purple')
     plt.plot(theoretical, label='Theoretical Strategy', color='Red')
     plt.title('Theoretically Optimal Strategy against Buy and Hold Strategy')
@@ -110,7 +129,7 @@ def gen_plots(benchmark, theoretical):
     plt.ylabel('Normalized Portfolio Value')
     plt.grid()
     plt.legend()
-    plt.savefig('images/figure1.png')
+    plt.savefig('images/figure1.png', facecolor='wheat')
     plt.clf()
 
 def report():
@@ -127,8 +146,6 @@ def author():
     return 'msyed46'
 
 if __name__ == "__main__":
-    #of = pd.read_csv('../marketsim/orders/orders-01.csv', index_col=0, parse_dates=[0])
-    #p = ms.compute_portvals(orders_file=of, start_val=1000000)
     report()
 
 
