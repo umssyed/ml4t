@@ -2,6 +2,31 @@ import pandas as pd
 import datetime as dt
 from util import get_data
 
+def dump():
+    # Using the dataframe of trades, construct a full order dataframe
+    #trades_of = orders_file
+    #trades_of = trades_of.assign(Order='HOLD')
+    #trades_of = trades_of.assign(Shares=0)
+    #print(trades_of)
+
+    # Start date should be
+
+    #date = trades_of.index
+    #shares = 0
+    #for i in range(0, len(trades_of)):
+    #    exec = trades_of.loc[date[i], 'Execute']
+    #    if exec > 0:
+    #        trades_of.loc[date[i], 'Order'] = 'BUY'
+    #        shares += exec
+    #        trades_of.loc[date[i], 'Shares'] = exec
+    #    else:
+    #        trades_of.loc[date[i], 'Order'] = 'SELL'
+    #        shares += exec
+    #        trades_of.loc[date[i], 'Shares'] = exec
+    #orders_file = trades_of[trades_of['Execute'] != 0]
+    #orders_file = orders_file.drop('Execute', axis=1)
+    pass
+
 def compute_portvals(
         orders_file="./orders/orders-01.csv",
         start_val=1000000,
@@ -26,37 +51,17 @@ def compute_portvals(
     # NOTE: orders_file may be a string, or it may be a file object. Your
     # code should work correctly with either input
     # TODO: Your code here
-    end_date = orders_file.index[-1]
-    # Using the dataframe of trades, construct a full order dataframe
-    trades_of = orders_file
-    trades_of = trades_of.assign(Order='HOLD')
-    trades_of = trades_of.assign(Shares=0)
 
-    # Start date should be
-
-    date = trades_of.index
-    shares = 0
-    for i in range(0, len(trades_of)):
-        exec = trades_of.loc[date[i], 'Execute']
-        if exec > 0:
-            trades_of.loc[date[i], 'Order'] = 'BUY'
-            shares += exec
-            trades_of.loc[date[i], 'Shares'] = exec
-        else:
-            trades_of.loc[date[i], 'Order'] = 'SELL'
-            shares += exec
-            trades_of.loc[date[i], 'Shares'] = exec
-    orders_file = trades_of[trades_of['Execute'] != 0]
-    orders_file = orders_file.drop('Execute', axis=1)
 
     # Set to 3 decimal places
     pd.options.display.float_format = '{:,.3f}'.format
 
     # Find Start Date and End date by scanning the orders_file
     df_len = len(orders_file)
-
     start_date = orders_file.index[0]
+    end_date = orders_file.index[-1]
     dates = pd.date_range(start_date, end_date)
+
     # ---------------------PRICE DATAFRAME----------------------#
     # Set df_dates
     df_dates = pd.DataFrame(index=dates)
@@ -66,6 +71,7 @@ def compute_portvals(
 
     # Create symbols dataframes with prices using util function get_data()
     df_sym = get_data(sym, dates)
+    #print(f"df_sym:\n {df_sym}")
 
     # Assign "Cash" to the df_sym
     df_price = df_sym.assign(Cash=start_val)
@@ -82,6 +88,7 @@ def compute_portvals(
 
     # Convert dataframe to float type object
     df_trades = df_trades.astype('float')
+
     # Go through orders file and fill in orders. Buy is positive, Sell is negative
     for i in range(0, df_len):
         trade_date = orders_file.index[i]

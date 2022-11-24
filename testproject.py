@@ -1,10 +1,19 @@
-import TheoreticallyOptimalStrategy as tos
-import indicators
+import pandas as pd
+import numpy as np
 import datetime as dt
+from util import get_data, plot_data
+import matplotlib.pyplot as plt
 
-df_trades = tos.testPolicy('JPM', sd=dt.datetime(2008,1,1), ed=dt.datetime(2009,12,31), sv=100000)
-tos.report()
-indicators.run()
+import ManualStrategy as ms
+
+def author():
+    return 'msyed46'
+
+# Manual Strategy
+ms.run()
+
+
+
 
 
 
