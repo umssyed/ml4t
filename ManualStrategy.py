@@ -36,7 +36,7 @@ class ManualStrategy(object):
         mmt = momentum(sd, ed, n=10, symbol=symbol)
         prices['MMT'] = mmt
 
-        df_prices = prices.dropna()
+        #df_prices = prices.dropna()
         df_prices = prices
         return df_prices
 
@@ -221,19 +221,50 @@ class ManualStrategy(object):
 
 def plot(start_date, end_date, benchmark, manual_strategy, benchmark_trades, manual_strategy_trades, data_sample):
     bm_trades = benchmark_trades.loc[benchmark_trades['Order'] == 'BUY']['Order']
-    ms_trades = manual_strategy_trades.loc[(manual_strategy_trades['Order'] == 'BUY') | (manual_strategy_trades['Order'] == 'SELL')]['Order']
+    #ms_trades = manual_strategy_trades.loc[(manual_strategy_trades['Order'] == 'BUY') | (manual_strategy_trades['Order'] == 'SELL')]['Order']
+    ms_trades = manual_strategy_trades.assign(CurrentShares=0, Position='HOLD')
+
+    curr_shares = 0
+    for i in range(0, len(ms_trades)):
+        trade_date = ms_trades.index[i]
+
+        if ms_trades.loc[trade_date]['Order'] == 'BUY':
+            curr_shares = curr_shares + ms_trades.loc[trade_date]['Shares']
+            ms_trades.at[trade_date, 'CurrentShares'] = curr_shares
+
+        elif ms_trades.loc[trade_date]['Order'] == 'SELL':
+            curr_shares = curr_shares - ms_trades.loc[trade_date]['Shares']
+            ms_trades.at[trade_date, 'CurrentShares'] = curr_shares
+
+        else:
+            ms_trades.at[trade_date, 'CurrentShares'] = curr_shares
+
+    for i in range(0, len(ms_trades)):
+        trade_date = ms_trades.index[i]
+
+        if ms_trades.loc[trade_date]['Order'] == 'BUY' and ms_trades.loc[trade_date]['CurrentShares'] == 1000:
+            ms_trades.at[trade_date, 'Position'] = 'LONG'
+
+        elif ms_trades.loc[trade_date]['Order'] == 'SELL' and ms_trades.loc[trade_date]['CurrentShares'] == -1000:
+            ms_trades.at[trade_date, 'Position'] = 'SHORT'
+
+        else:
+            ms_trades.at[trade_date, 'Position'] = 'HOLD'
+
+    ms_trades_1 = ms_trades.loc[(ms_trades['Position'] == 'LONG') | (ms_trades['Position'] == 'SHORT')]['Position']
+    #print(ms_trades_1)
 
     plt.figure(figsize=(15, 9))
     plt.plot(benchmark, label="Benchmark", color="purple")
     plt.plot(manual_strategy, label="Manual Strategy", color="red")
 
     # Check ms_trades:
-    for i in range(0, len(ms_trades)):
-        date = ms_trades.index[i]
+    for i in range(0, len(ms_trades_1)):
+        date = ms_trades_1.index[i]
         # LONG - BLUE, SHORT - BLACK
-        if ms_trades.loc[date]== 'BUY':
+        if ms_trades_1.loc[date] == 'LONG':
             plt.axvline(x=date, color='blue')
-        elif ms_trades.loc[date] == 'SELL':
+        elif ms_trades_1.loc[date] == 'SHORT':
             plt.axvline(x=date, color='black')
 
     if data_sample == 'in_sample':
@@ -250,6 +281,7 @@ def plot(start_date, end_date, benchmark, manual_strategy, benchmark_trades, man
         plt.legend()
         plt.grid()
         plt.savefig('images/outsample_manual_benchmark.png', facecolor='wheat')
+
     plt.clf()
 
 def generate_statistics(benchmark, manual_strategy):
@@ -309,7 +341,8 @@ def run():
     insample_stats = generate_statistics(benchmark_portval['Values'], manual_strategy_portval['Values'])
     insample_table = pd.DataFrame(insample_stats)
     insample_table = insample_table.set_index('Statistics')
-    print("In Sample Statistics")
+    #if self.verbose:
+    print("\nIn Sample Statistics")
     print(insample_table)
     print()
 
@@ -339,6 +372,7 @@ def run():
     outsample_stats = generate_statistics(benchmark_portval['Values'], manual_strategy_portval['Values'])
     outsample_stats = pd.DataFrame(outsample_stats)
     outsample_stats = outsample_stats.set_index('Statistics')
+
     print("Out of Sample Statistics")
     print(outsample_stats)
     print()
